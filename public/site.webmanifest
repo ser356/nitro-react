@@ -1,7 +1,7 @@
 {
     "start_url": "/",
-    "name": "Nitro",
-    "short_name": "Nitro",
+    "name": "Pieslibres Hotel",
+    "short_name": "Pieslibres Hotel",
     "icons": [
         {
             "src": "android-chrome-192x192.png",
@@ -14,7 +14,7 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
+    "theme_color": "#fff0f8",
+    "background_color": "#fff7fc",
     "display": "standalone"
 }

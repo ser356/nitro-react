@@ -509,7 +509,7 @@
   resolved "https://registry.yarnpkg.com/@pixi/constants/-/constants-6.5.10.tgz#ac0a9c55db0d3dadcd85aa31a251db493c3bd80b"
   integrity sha512-PUF2Y9YISRu5eVrVVHhHCWpc/KmxQTg3UH8rIUs8UI9dCK41/wsPd3pEahzf7H47v7x1HCohVZcFO3XQc1bUDw==
 
-"@pixi/core@~6.5.0":
+"@pixi/core@6.5.10", "@pixi/core@~6.5.0":
   version "6.5.10"
   resolved "https://registry.yarnpkg.com/@pixi/core/-/core-6.5.10.tgz#b92207164526fa4a6d285ccd13cb62bdee50b493"
   integrity sha512-Gdzp5ENypyglvsh5Gv3teUZnZnmizo4xOsL+QqmWALdFlJXJwLJMVhKVThV/q/095XR6i4Ou54oshn+m4EkuFw==
@@ -638,6 +638,11 @@
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/@pixi/tilemap/-/tilemap-3.2.2.tgz#8327e5d7007a90be640a0b1eb9943a1e405b57e4"
   integrity sha512-svdmMyJP63vdae3t66tCmE8IWeO/6lD1xXU+5gzfxqxJS5seTp2bm8mQok2c8PF0O6l/NYlLz6BRklOuEuHboQ==
+
+"@pixi/unsafe-eval@6.5.10":
+  version "6.5.10"
+  resolved "https://registry.yarnpkg.com/@pixi/unsafe-eval/-/unsafe-eval-6.5.10.tgz#790b019fcc5ae1e742e0d7c84a075aa7cdcf851a"
+  integrity sha512-IC/SjQb4vXBgtcLeERjmgb55tdFVJizBQJLytaKFSlJk9gQf3itGmwx4yF/S3+ArrJpJdYrKSR9DB8XNw8oK/w==
 
 "@pixi/utils@~6.5.0":
   version "6.5.10"

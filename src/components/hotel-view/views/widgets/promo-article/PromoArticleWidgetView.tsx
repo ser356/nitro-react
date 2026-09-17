@@ -1,4 +1,4 @@
-import { GetPromoArticlesComposer, PromoArticleData, PromoArticlesMessageEvent } from '@nitrots/nitro-renderer';
+import { GetPromoArticlesComposer, NitroConfiguration, PromoArticleData, PromoArticlesMessageEvent } from '@nitrots/nitro-renderer';
 import { FC, useEffect, useState } from 'react';
 import { LocalizeText, OpenUrl, SendMessageComposer } from '../../../../../api';
 import { useMessageEvent } from '../../../../../hooks';
@@ -34,8 +34,8 @@ export const PromoArticleWidgetView: FC<{}> = props =>
             </div>
             { articles && articles[index] &&
                 <div className="promo-article d-flex flex-row row mx-0">
-                    <div className="promo-article-image" style={ { backgroundImage: `url(${ articles[index].imageUrl })` } }/>
-                    <div className="col-3 d-flex flex-column h-100">
+                    <div className="promo-article-image" style={ { backgroundImage: `url(${ NitroConfiguration.interpolate(articles[index].imageUrl) })` } }/>
+                    <div className="col d-flex flex-column h-100">
                         <h3 className="my-0">{ articles[index].title }</h3>
                         <b>{ articles[index].bodyText }</b>
                         <button className="btn btn-sm mt-auto btn-gainsboro" onClick={ event => OpenUrl(articles[index].linkContent) }>{ articles[index].buttonText }</button>

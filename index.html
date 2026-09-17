@@ -1,35 +1,507 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" crossorigin="use-credentials" href="/site.webmanifest">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000">
-    <meta name="apple-mobile-web-app-title" content="Nitro">
-    <meta name="application-name" content="Nitro">
+    <link rel="icon" type="image/svg+xml" href="/pieslibres-favicon.svg?v=3" />
+    <link rel="shortcut icon" href="/pieslibres-favicon.svg?v=3" />
+    <link rel="manifest" href="/site.webmanifest?v=3" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-title" content="Pieslibres Hotel">
+    <meta name="application-name" content="Pieslibres Hotel">
     <meta name="msapplication-TileColor" content="#000000">
     <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <base href="./">
-    <title>Nitro</title>
+    <title>Pies Libres Hotel</title>
+    <script>
+      (() => {
+        const parameters = new URLSearchParams(location.search);
+        const cookie = name => document.cookie.split(';').map(part => part.trim()).find(part => part.startsWith(`${ name }=`))?.split('=').slice(1).join('=');
+        const appearances = ['original', 'retro', 'fanzine', 'arcade', 'aero', 'metalheart'];
+        const requestedAppearance = parameters.get('appearance') || cookie('pieslibres_appearance');
+        const requestedTheme = parameters.get('theme') || cookie('pieslibres_theme');
+        const appearance = appearances.includes(requestedAppearance) ? requestedAppearance : 'original';
+        const theme = requestedTheme === 'purple' ? 'purple' : 'pink';
+        const defaultReturn = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost/' : 'https://www.pieslibres.org/';
+        let returnUrl = defaultReturn;
+
+        try {
+          const candidate = new URL(parameters.get('return') || defaultReturn);
+          const production = candidate.protocol === 'https:' && ['pieslibres.org', 'www.pieslibres.org'].includes(candidate.hostname);
+          const local = ['localhost', '127.0.0.1'].includes(candidate.hostname);
+          if(production || local) returnUrl = candidate.href;
+        } catch {}
+
+        document.documentElement.dataset.appearance = appearance;
+        document.documentElement.classList.toggle('theme-purple', theme === 'purple');
+        window.PiesLibresHotelContext = { appearance, theme, returnUrl };
+      })();
+    </script>
+    <style>
+      html, body, #root { width: 100%; height: 100%; margin: 0; }
+      body { background: #091827; font-family: Ubuntu, Arial, sans-serif; }
+      body.account-pending #root { visibility: hidden; }
+      [hidden] { display: none !important; }
+      ::selection { color: #091827; background: #ffd76a; }
+      .account-button { position: fixed; z-index: 100; left: calc(50% - 45px); bottom: max(7px, env(safe-area-inset-bottom)); display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; padding: 0; border: 1px solid #f5b942; border-radius: 50%; color: #142238; background: #ffd76a; box-shadow: 0 3px 10px rgba(5, 14, 24, .3); font: 700 14px/1 Ubuntu, Arial, sans-serif; cursor: pointer; }
+      .account-button:hover, .account-button:focus-visible { background: #ffe39a; opacity: 1; }
+      .account-button:focus-visible, .account-panel button:focus-visible, .account-panel input:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+      .account-button svg { width: 20px; height: 20px; }
+      .account-dialog { max-width: none; padding: 0; border: 0; color: #f4f8fc; background: transparent; }
+      .account-dialog::backdrop { background: rgba(3, 11, 20, .82); backdrop-filter: blur(8px); }
+      .account-panel { position: relative; width: min(420px, calc(100vw - 32px)); box-sizing: border-box; padding: 34px; overflow: hidden; border: 1px solid #4e789d; border-radius: 16px; background: #17304a; box-shadow: 0 24px 70px rgba(0, 0, 0, .55); }
+      .account-dialog[open] .account-panel { animation: account-enter 240ms cubic-bezier(.16, 1, .3, 1); }
+      .account-close { position: absolute; top: 16px; right: 16px; display: grid; width: 36px; height: 36px; padding: 0; place-items: center; border: 0; border-radius: 50%; color: #d8e9f6; background: #254866; cursor: pointer; }
+      .account-close:hover { background: #315b7d; }
+      .account-close svg { width: 18px; height: 18px; }
+      .account-mark { display: grid; width: 54px; height: 54px; margin-bottom: 22px; place-items: center; border-radius: 14px; color: #17304a; background: #ffd76a; box-shadow: 0 7px 20px rgba(3, 12, 22, .35); }
+      .account-mark svg { width: 32px; height: 32px; }
+      .account-panel h1 { margin: 0 42px 8px 0; color: #fff; font-size: clamp(25px, 7vw, 34px); line-height: 1.05; letter-spacing: -.025em; }
+      .account-copy { margin: 0 0 24px; color: #bfd4e4; font-size: 15px; line-height: 1.5; }
+      .account-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 20px; padding: 4px; border-radius: 10px; background: #10263c; }
+      .account-tab { min-height: 38px; border: 0; border-radius: 7px; color: #a9c3d8; background: transparent; font: 700 14px/1 Ubuntu, Arial, sans-serif; cursor: pointer; }
+      .account-tab[aria-pressed="true"] { color: #10263c; background: #d8e9f6; }
+      .account-form { display: grid; gap: 15px; }
+      .account-field { display: grid; gap: 7px; color: #eaf4fb; font-size: 13px; font-weight: 700; }
+      .account-field input { width: 100%; height: 46px; box-sizing: border-box; padding: 0 13px; border: 1px solid #5e84a4; border-radius: 8px; color: #fff; background: #0d2236; caret-color: #ffd76a; font: 500 16px/1 Ubuntu, Arial, sans-serif; }
+      .account-field input::placeholder { color: #94b0c6; }
+      .account-field input:hover { border-color: #83a9c7; }
+      .account-submit, .account-guest, .account-logout { min-height: 46px; border-radius: 8px; font: 800 15px/1 Ubuntu, Arial, sans-serif; cursor: pointer; }
+      .account-submit { border: 1px solid #f5b942; color: #142238; background: #ffd76a; }
+      .account-submit:hover { background: #ffe39a; }
+      .account-submit:disabled, .account-guest:disabled, .account-logout:disabled { cursor: wait; opacity: .58; }
+      .account-guest, .account-logout { width: 100%; margin-top: 12px; border: 1px solid #6c91af; color: #eaf4fb; background: #254866; }
+      .account-guest:hover, .account-logout:hover { background: #315b7d; }
+      .account-hint { margin: -4px 0 0; color: #9fbed4; font-size: 12px; line-height: 1.45; }
+      .account-error { min-height: 20px; margin: 4px 0 0; color: #ffd2c7; font-size: 13px; font-weight: 700; line-height: 1.4; }
+      .account-name { margin: 0; color: #ffd76a; font-size: 24px; font-weight: 800; overflow-wrap: anywhere; }
+      @keyframes account-enter { from { opacity: .5; transform: translateY(18px) scale(.98); filter: blur(4px); } }
+      @media (max-width: 480px) { .account-panel { padding: 28px 22px; } }
+      @media (prefers-reduced-motion: reduce) { .account-dialog[open] .account-panel { animation: none; } }
+      :root {
+        --hotel-font: 'Comic Neue', 'Comic Sans MS', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --hotel-bg: repeating-linear-gradient(135deg, transparent 0 24px, rgba(233, 30, 144, .04) 24px 48px), #fff7fc;
+        --hotel-panel: rgba(255, 255, 255, .94);
+        --hotel-ink: #5d0640;
+        --hotel-muted: #81305f;
+        --hotel-line: #e91e90;
+        --hotel-field: #fff;
+        --hotel-field-line: #c9669e;
+        --hotel-control: #fff0f8;
+        --hotel-action: #fff000;
+        --hotel-action-ink: #6b164a;
+        --hotel-highlight: #ff1493;
+        --hotel-error: #a1113e;
+        --hotel-backdrop: rgba(93, 6, 64, .16);
+        --hotel-radius: 8px 24px 8px 20px;
+        --hotel-shadow: 0 18px 46px rgba(22, 14, 19, .2);
+      }
+      :root.theme-purple {
+        --hotel-bg: repeating-linear-gradient(135deg, transparent 0 24px, rgba(128, 40, 220, .05) 24px 48px), #f7efff;
+        --hotel-ink: #38125c;
+        --hotel-muted: #704393;
+        --hotel-line: #a855f7;
+        --hotel-field-line: #a17cbe;
+        --hotel-control: #f3eefa;
+        --hotel-action-ink: #38125c;
+        --hotel-highlight: #a855f7;
+        --hotel-shadow: 0 18px 46px rgba(22, 14, 28, .2);
+      }
+      :root[data-appearance="retro"] {
+        --hotel-font: Verdana, Geneva, sans-serif;
+        --hotel-bg: #d9d3df;
+        --hotel-panel: #f2edf4;
+        --hotel-ink: #26182c;
+        --hotel-muted: #604769;
+        --hotel-line: #716477;
+        --hotel-field: #fff9fd;
+        --hotel-field-line: #716477;
+        --hotel-control: #e4dce7;
+        --hotel-action: #ddd0e2;
+        --hotel-action-ink: #26182c;
+        --hotel-highlight: #9e0061;
+        --hotel-error: #8d1545;
+        --hotel-backdrop: rgba(38, 24, 44, .18);
+        --hotel-radius: 0;
+        --hotel-shadow: 4px 4px 0 #716477;
+      }
+      :root[data-appearance="fanzine"] {
+        --hotel-font: 'Comic Neue', 'Comic Sans MS', sans-serif;
+        --hotel-bg: radial-gradient(#28112625 1px, transparent 1px) 0 0 / 9px 9px, #ffb4dd;
+        --hotel-panel: #fff9fc;
+        --hotel-ink: #281126;
+        --hotel-muted: #683b5c;
+        --hotel-line: #281126;
+        --hotel-field: #fff;
+        --hotel-field-line: #281126;
+        --hotel-control: #fff2fb;
+        --hotel-action: #fff000;
+        --hotel-action-ink: #281126;
+        --hotel-highlight: #b80069;
+        --hotel-error: #9d0039;
+        --hotel-backdrop: rgba(40, 17, 38, .2);
+        --hotel-radius: 2px 16px 2px 4px;
+        --hotel-shadow: 8px 8px 0 #281126;
+      }
+      :root[data-appearance="arcade"] {
+        --hotel-font: 'Courier New', monospace;
+        --hotel-bg: linear-gradient(#9b73ff20 1px, transparent 1px), linear-gradient(90deg, #9b73ff20 1px, transparent 1px), #151332;
+        --hotel-panel: #281b48;
+        --hotel-ink: #fff7ff;
+        --hotel-muted: #e2c7ff;
+        --hotel-line: #ff6cdb;
+        --hotel-field: #17112d;
+        --hotel-field-line: #aa80bd;
+        --hotel-control: #362359;
+        --hotel-action: #ff6cdb;
+        --hotel-action-ink: #271344;
+        --hotel-highlight: #76e8ed;
+        --hotel-error: #ffb8d8;
+        --hotel-backdrop: rgba(9, 7, 27, .76);
+        --hotel-radius: 22px;
+        --hotel-shadow: 0 0 0 3px #271344, 7px 7px 0 #ff6cdb, 0 0 32px #f44dcc66;
+      }
+      :root[data-appearance="aero"] {
+        --hotel-font: 'Segoe UI', Tahoma, sans-serif;
+        --hotel-bg: radial-gradient(ellipse at 18% 14%, #fff 0 5%, transparent 5.3%), radial-gradient(ellipse at 26% 12%, #fff 0 7%, transparent 7.3%), radial-gradient(ellipse at 78% 20%, #ffffffdd 0 7%, transparent 7.3%), linear-gradient(180deg, #70c6f3 0 64%, #92da57 64% 75%, #43add4 75% 100%);
+        --hotel-panel: linear-gradient(150deg, #ffffffed, #ecf8fff2 75%, #e5f4dcf2);
+        --hotel-ink: #123e56;
+        --hotel-muted: #315c70;
+        --hotel-line: #70aec6;
+        --hotel-field: #fffffff2;
+        --hotel-field-line: #8ab7c9;
+        --hotel-control: linear-gradient(180deg, #fff, #e1f6ff 48%, #c2e9f6 49%, #eefaff);
+        --hotel-action: linear-gradient(180deg, #f4ffdc, #c7f284 48%, #97d34c 49%, #d3f699);
+        --hotel-action-ink: #21430b;
+        --hotel-highlight: #006ca0;
+        --hotel-error: #8b2532;
+        --hotel-backdrop: rgba(18, 101, 139, .2);
+        --hotel-radius: 22px;
+        --hotel-shadow: inset 0 2px 0 #fff, inset 0 -2px 0 #b6e3ee, 0 16px 34px #12658b3d;
+      }
+      :root[data-appearance="metalheart"] {
+        --hotel-font: 'Arial Narrow', 'Segoe UI', sans-serif;
+        --hotel-bg: linear-gradient(112deg, transparent 0 68%, #7fe9e630 68% 68.15%, transparent 68.15%), radial-gradient(circle at 75% 35%, #2a6874 0 7%, transparent 20%), #070b11;
+        --hotel-panel: linear-gradient(145deg, #17232cf5, #0c1219f5 72%);
+        --hotel-ink: #e6f3f4;
+        --hotel-muted: #b5ccd0;
+        --hotel-line: #4bd3c6;
+        --hotel-field: #070d13;
+        --hotel-field-line: #536f79;
+        --hotel-control: linear-gradient(145deg, #26343d, #0d141b);
+        --hotel-action: linear-gradient(135deg, #c8fffa1f, transparent 48%), #123c42;
+        --hotel-action-ink: #eafffc;
+        --hotel-highlight: #4bd3c6;
+        --hotel-error: #ffb7b7;
+        --hotel-backdrop: rgba(0, 4, 8, .78);
+        --hotel-radius: 0 26px 0 12px;
+        --hotel-shadow: inset 0 1px 0 #c6fbff20, inset 0 -1px 0 #000a, 0 20px 48px #000b;
+      }
+      body { color: var(--hotel-ink); background: var(--hotel-bg); background-size: auto, auto, auto, cover; font-family: var(--hotel-font); }
+      .account-dialog::backdrop { background: var(--hotel-backdrop); }
+      .account-panel { color: var(--hotel-ink); border-color: var(--hotel-line); border-radius: var(--hotel-radius); background: var(--hotel-panel); box-shadow: var(--hotel-shadow); }
+      .account-panel h1 { color: var(--hotel-ink); }
+      .account-copy, .account-hint { color: var(--hotel-muted); }
+      .account-button, .account-submit { color: var(--hotel-action-ink); border-color: var(--hotel-line); border-radius: var(--hotel-radius); background: var(--hotel-action); box-shadow: var(--hotel-shadow); font-family: var(--hotel-font); }
+      .account-close, .account-tabs, .account-guest, .account-logout { color: var(--hotel-ink); border-color: var(--hotel-line); border-radius: var(--hotel-radius); background: var(--hotel-control); font-family: var(--hotel-font); }
+      .account-tab { color: var(--hotel-muted); border-radius: var(--hotel-radius); font-family: var(--hotel-font); }
+      .account-tab[aria-pressed="true"] { color: var(--hotel-action-ink); background: var(--hotel-action); }
+      .account-field { color: var(--hotel-ink); }
+      .account-field input { color: var(--hotel-ink); border-color: var(--hotel-field-line); border-radius: var(--hotel-radius); background: var(--hotel-field); caret-color: var(--hotel-highlight); font-family: var(--hotel-font); }
+      .account-field input::placeholder { color: var(--hotel-muted); }
+      .account-field input:hover { border-color: var(--hotel-highlight); }
+      .account-mark { color: var(--hotel-action-ink); border-radius: var(--hotel-radius); background: var(--hotel-action); }
+      .account-error { color: var(--hotel-error); }
+      .account-name { color: var(--hotel-highlight); }
+      .account-button:hover, .account-submit:hover { background: var(--hotel-action); filter: brightness(1.06) saturate(1.06); }
+      .account-close:hover, .account-guest:hover, .account-logout:hover { background: var(--hotel-control); filter: brightness(1.06) saturate(1.06); }
+      .account-button:focus-visible, .account-panel button:focus-visible, .account-panel input:focus-visible, .return-button:focus-visible { outline-color: var(--hotel-highlight); }
+      .return-button { position: fixed; z-index: 100; left: calc(50% + 7px); bottom: max(7px, env(safe-area-inset-bottom)); display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; padding: 0; color: var(--hotel-ink); border: 1px solid var(--hotel-line); border-radius: 50%; background: var(--hotel-control); box-shadow: 0 3px 10px rgba(5, 14, 24, .3); font: 800 14px/1 var(--hotel-font); text-decoration: none; }
+      .return-button:hover, .return-button:focus-visible { filter: brightness(1.06) saturate(1.06); opacity: 1; }
+      .return-button svg { width: 20px; height: 20px; flex: 0 0 auto; }
+      .account-button span, .return-button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+      :root[data-appearance="retro"] :is(.account-button, .account-submit, .account-guest, .account-logout, .account-field input, .return-button) { border-width: 3px; border-style: outset; }
+      :root[data-appearance="fanzine"] .account-panel { transform: rotate(-.35deg); border-width: 3px; }
+      :root[data-appearance="arcade"] body { background-size: 32px 32px; }
+      :root[data-appearance="aero"] :is(.account-button, .account-submit, .account-guest, .account-logout, .account-tab, .return-button) { border-radius: 999px; }
+      @media (max-width: 480px) { .account-button, .return-button { bottom: max(6px, env(safe-area-inset-bottom)); width: 36px; height: 36px; } .account-button { left: calc(50% - 41px); } .return-button { left: calc(50% + 5px); } }
+    </style>
   </head>
-  <body>
+  <body class="account-pending">
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root" class="w-100 h-100"></div>
+    <button id="account-button" class="account-button" type="button" title="Guardar personaje" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l3 3v15H4V3Zm3 0v7h10V3M7 21v-7h10v7M14 5h2v3h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>Guardar personaje</span>
+    </button>
+    <a id="return-button" class="return-button" href="https://www.pieslibres.org/" target="_top" title="Volver a Pies Libres" aria-label="Volver a Pies Libres">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m10.6 5.4-6.6 6.6 6.6 6.6 1.4-1.4-4.2-4.2h12.2v-2H7.8L12 6.8l-1.4-1.4Z"/></svg>
+      <span>Volver a Pies Libres</span>
+    </a>
+    <dialog id="account-dialog" class="account-dialog" aria-labelledby="account-title" aria-describedby="account-copy">
+      <section class="account-panel">
+        <button id="account-close" class="account-close" type="button" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z"/></svg>
+        </button>
+        <div class="account-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 3h14v18H5V3Zm3 3v12h8V6H8Zm5 5h2v2h-2v-2Z"/></svg>
+        </div>
+        <h1 id="account-title">Vuelve a tu personaje</h1>
+        <p id="account-copy" class="account-copy">Entra con tu cuenta o juega como invitado. Los invitados se borran en 1 hora.</p>
+        <div id="account-tabs" class="account-tabs">
+          <button id="login-tab" class="account-tab" type="button" aria-pressed="true">Entrar</button>
+          <button id="register-tab" class="account-tab" type="button" aria-pressed="false">Crear cuenta</button>
+        </div>
+        <form id="login-form" class="account-form">
+          <label class="account-field">Usuario<input name="username" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9._\-]+" required></label>
+          <label class="account-field">Contraseña<input name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required></label>
+          <button class="account-submit" type="submit">Entrar y recuperar personaje</button>
+        </form>
+        <form id="register-form" class="account-form" hidden>
+          <label class="account-field">Usuario de acceso<input name="username" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9._\-]+" required></label>
+          <label class="account-field">Contraseña<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label>
+          <label class="account-field">Repite la contraseña<input name="confirmation" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label>
+          <p class="account-hint">12 caracteres como mínimo. Este registro conserva salas, inventario y aspecto.</p>
+          <button class="account-submit" type="submit">Guardar este personaje</button>
+        </form>
+        <section id="registered-view" hidden>
+          <p class="account-name" id="account-name"></p>
+          <p class="account-copy">Tu personaje queda vinculado a esta cuenta.</p>
+          <button id="logout-button" class="account-logout" type="button">Cerrar sesión</button>
+        </section>
+        <p id="account-error" class="account-error" role="alert" aria-live="polite"></p>
+        <button id="guest-button" class="account-guest" type="button">Jugar como invitado</button>
+      </section>
+    </dialog>
     <script>
-      const NitroConfig = {
-        "config.urls": [ '/renderer-config.json', '/ui-config.json' ],
-        "sso.ticket": (new URLSearchParams(window.location.search).get('sso') || null),
-        "forward.type": (new URLSearchParams(window.location.search).get('room') ? 2 : -1),
-        "forward.id": (new URLSearchParams(window.location.search).get('room') || 0),
-        "friend.id": (new URLSearchParams(window.location.search).get('friend') || 0),
+      var NitroConfig;
+      document.getElementById('return-button').href = window.PiesLibresHotelContext.returnUrl;
+      const accountDialog = document.getElementById('account-dialog');
+      const accountButton = document.getElementById('account-button');
+      const accountButtonText = accountButton.querySelector('span');
+      const accountClose = document.getElementById('account-close');
+      const accountTitle = document.getElementById('account-title');
+      const accountCopy = document.getElementById('account-copy');
+      const accountTabs = document.getElementById('account-tabs');
+      const loginTab = document.getElementById('login-tab');
+      const registerTab = document.getElementById('register-tab');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const registeredView = document.getElementById('registered-view');
+      const accountName = document.getElementById('account-name');
+      const accountError = document.getElementById('account-error');
+      const guestButton = document.getElementById('guest-button');
+      const logoutButton = document.getElementById('logout-button');
+      const errorMessages = {
+        invalid_credentials: 'Usuario o contraseña incorrectos.',
+        invalid_username: 'Usa entre 3 y 20 letras, números, puntos, guiones o guiones bajos.',
+        invalid_password: 'La contraseña debe tener entre 12 y 128 caracteres.',
+        username_taken: 'Ese usuario ya está ocupado.',
+        already_registered: 'Este personaje ya tiene cuenta.',
+        guest_session_required: 'La sesión de invitado caducó. Recarga e inténtalo de nuevo.',
+        too_many_attempts: 'Demasiados intentos. Espera 15 minutos.',
       };
+      let accountState = null;
+      let firstVisitResolve = null;
+      let choiceRequired = false;
+
+      const requestJson = async (path, options = {}) => {
+        const response = await fetch(path, { credentials: 'same-origin', ...options });
+        const body = await response.json().catch(() => ({}));
+
+        if(!response.ok) {
+          const error = new Error(body.error || 'request_failed');
+          error.code = body.error;
+          throw error;
+        }
+
+        return body;
+      };
+
+      const setMode = mode => {
+        const registering = mode === 'register';
+        loginForm.hidden = registering;
+        registerForm.hidden = !registering;
+        registeredView.hidden = true;
+        loginTab.setAttribute('aria-pressed', String(!registering));
+        registerTab.setAttribute('aria-pressed', String(registering));
+        accountTitle.textContent = registering ? 'Guarda tu personaje' : 'Vuelve a tu personaje';
+        accountCopy.textContent = registering ? 'Crea tus datos de acceso sin perder nada de lo que ya has conseguido.' : 'Entra con tu cuenta y continúa exactamente donde lo dejaste.';
+        accountError.textContent = '';
+      };
+
+      const openAccount = (mode, required = false) => {
+        choiceRequired = required;
+        accountClose.hidden = required;
+        guestButton.hidden = !required;
+        accountTabs.hidden = false;
+        setMode(mode);
+        if(!accountDialog.open) accountDialog.showModal();
+      };
+
+      const submitCredentials = async (form, path) => {
+        const submit = form.querySelector('[type="submit"]');
+        const data = Object.fromEntries(new FormData(form));
+        submit.disabled = true;
+        form.setAttribute('aria-busy', 'true');
+        accountError.textContent = '';
+
+        try {
+          return await requestJson(path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: data.username, password: data.password }),
+          });
+        } catch(error) {
+          accountError.textContent = errorMessages[error.code] || 'No se pudo completar la operación. Inténtalo de nuevo.';
+          return null;
+        } finally {
+          submit.disabled = false;
+          form.removeAttribute('aria-busy');
+        }
+      };
+
+      loginTab.addEventListener('click', () => setMode('login'));
+      registerTab.addEventListener('click', () => setMode('register'));
+      accountClose.addEventListener('click', () => accountDialog.close());
+      accountDialog.addEventListener('cancel', event => {
+        if(choiceRequired) event.preventDefault();
+      });
+      loginForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const session = await submitCredentials(loginForm, '/api/login');
+        if(!session) return;
+        if(firstVisitResolve) {
+          firstVisitResolve(session);
+          firstVisitResolve = null;
+          choiceRequired = false;
+          accountDialog.close();
+        } else {
+          location.reload();
+        }
+      });
+      registerForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const data = new FormData(registerForm);
+        if(data.get('password') !== data.get('confirmation')) {
+          accountError.textContent = 'Las contraseñas no coinciden.';
+          return;
+        }
+        if(firstVisitResolve) {
+          try {
+            await requestJson('/api/session', { method: 'POST' });
+          } catch {
+            accountError.textContent = 'No se pudo crear el personaje. Inténtalo de nuevo.';
+            return;
+          }
+        }
+
+        const session = await submitCredentials(registerForm, '/api/register');
+        if(!session) return;
+
+        if(firstVisitResolve) {
+          firstVisitResolve(session);
+          firstVisitResolve = null;
+          choiceRequired = false;
+          accountDialog.close();
+        } else {
+          location.reload();
+        }
+      });
+      guestButton.addEventListener('click', async () => {
+        guestButton.disabled = true;
+        accountError.textContent = '';
+        try {
+          const session = await requestJson('/api/session', { method: 'POST' });
+          firstVisitResolve(session);
+          firstVisitResolve = null;
+          choiceRequired = false;
+          accountDialog.close();
+        } catch {
+          accountError.textContent = 'No se pudo crear el personaje. Inténtalo de nuevo.';
+        } finally {
+          guestButton.disabled = false;
+        }
+      });
+      accountButton.addEventListener('click', () => {
+        if(accountState.registered) {
+          accountClose.hidden = false;
+          guestButton.hidden = true;
+          accountTabs.hidden = true;
+          loginForm.hidden = true;
+          registerForm.hidden = true;
+          registeredView.hidden = false;
+          accountTitle.textContent = 'Cuenta guardada';
+          accountCopy.textContent = 'Tu progreso volverá contigo aunque cierres esta ventana.';
+          accountName.textContent = accountState.username;
+          accountError.textContent = '';
+          accountDialog.showModal();
+        } else {
+          accountTabs.hidden = false;
+          openAccount('register');
+        }
+      });
+      logoutButton.addEventListener('click', async () => {
+        logoutButton.disabled = true;
+        try {
+          await requestJson('/api/logout', { method: 'POST' });
+          location.reload();
+        } catch {
+          accountError.textContent = 'No se pudo cerrar la sesión. Inténtalo de nuevo.';
+          logoutButton.disabled = false;
+        }
+      });
+
+      window.NitroConfigReady = (async () => {
+        const parameters = new URLSearchParams(window.location.search);
+        let ticket = parameters.get('sso');
+        let session = null;
+
+        if(!ticket) {
+          const knownAccount = await requestJson('/api/account');
+          session = knownAccount.known
+            ? await requestJson('/api/session', { method: 'POST' })
+            : await new Promise(resolve => {
+                firstVisitResolve = resolve;
+                openAccount('login', true);
+              });
+          ticket = session.ticket;
+        }
+
+        NitroConfig = {
+          "config.urls": [ '/renderer-config.json', '/ui-config.json' ],
+          "sso.ticket": ticket,
+          "forward.type": (parameters.get('room') ? 2 : -1),
+          "forward.id": (parameters.get('room') || 0),
+          "friend.id": (parameters.get('friend') || 0),
+        };
+
+        if(parameters.has('sso')) {
+          parameters.delete('sso');
+          history.replaceState(null, '', `${ location.pathname }${ parameters.size ? `?${ parameters }` : '' }${ location.hash }`);
+        }
+
+        if(session) {
+          accountState = session.account;
+          accountButtonText.textContent = accountState.registered ? accountState.username : 'Guardar personaje';
+          accountButton.title = accountState.registered ? accountState.username : 'Guardar personaje antes de 1 hora';
+          accountButton.hidden = false;
+        }
+
+        document.body.classList.remove('account-pending');
+      })();
     </script>
-    <script type="module" src="./src/index.tsx"></script>
+    <script type="module">
+      window.NitroConfigReady
+        .then(() => import('./src/index.tsx'))
+        .catch(error => {
+          document.body.classList.remove('account-pending');
+          const root = document.getElementById('root');
+          root.innerHTML = '<main style="display:grid;place-content:center;height:100%;padding:24px;text-align:center"><h1>Hotel no disponible</h1><p>No se pudo iniciar la sesión.</p><button type="button">Reintentar</button></main>';
+          root.querySelector('button').addEventListener('click', () => location.reload());
+          console.error(error);
+        });
+    </script>
   </body>
 </html>

@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@nitrots/nitro-renderer": "^1.6.6",
+    "@pixi/core": "6.5.10",
+    "@pixi/unsafe-eval": "6.5.10",
     "@tanstack/react-virtual": "^3.0.0-alpha.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.2.2",

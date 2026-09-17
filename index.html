@@ -226,6 +226,14 @@
       :root[data-appearance="arcade"] body { background-size: 32px 32px; }
       :root[data-appearance="aero"] :is(.account-button, .account-submit, .account-guest, .account-logout, .account-tab, .return-button) { border-radius: 999px; }
       @media (max-width: 480px) { .account-button, .return-button { bottom: max(6px, env(safe-area-inset-bottom)); width: 36px; height: 36px; } .account-button { left: calc(50% - 41px); } .return-button { left: calc(50% + 5px); } }
+
+      .orientation-dialog { box-sizing: border-box; width: min(360px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); margin: auto; padding: 28px 24px; border: 2px solid var(--hotel-line); border-radius: var(--hotel-radius); color: var(--hotel-ink); background: var(--hotel-panel); font-family: var(--hotel-font); text-align: center; }
+      .orientation-dialog::backdrop { background: #091827; }
+      .orientation-dialog svg { width: 88px; height: 88px; color: var(--hotel-highlight); }
+      .orientation-dialog h2 { margin: 12px 0; font-size: 26px; }
+      .orientation-dialog p { line-height: 1.5; }
+      .orientation-dialog a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; color: var(--hotel-ink); }
+      .orientation-dialog a:focus-visible { outline: 3px solid var(--hotel-highlight); outline-offset: 3px; }
     </style>
   </head>
   <body class="account-pending">
@@ -274,10 +282,45 @@
         <button id="guest-button" class="account-guest" type="button">Jugar como invitado</button>
       </section>
     </dialog>
+    <dialog id="orientation-dialog" class="orientation-dialog" aria-labelledby="orientation-title" aria-describedby="orientation-copy">
+      <svg viewBox="0 0 96 96" fill="none" aria-hidden="true"><rect x="21" y="33" width="54" height="30" rx="5" stroke="currentColor" stroke-width="3"/><path d="M24 23a33 33 0 0 1 51 8m0-12v12H63M72 73a33 33 0 0 1-51-8m0 12V65h12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2 id="orientation-title">Gira el móvil</h2>
+      <p id="orientation-copy">Para jugar al hotel, coloca el móvil en horizontal.</p>
+      <a id="orientation-return" href="https://www.pieslibres.org/" target="_top" autofocus>Volver a Pieslibres</a>
+    </dialog>
     <script>
       var NitroConfig;
       document.getElementById('return-button').href = window.PiesLibresHotelContext.returnUrl;
       const accountDialog = document.getElementById('account-dialog');
+      const orientationDialog = document.getElementById('orientation-dialog');
+      const portraitQuery = window.matchMedia('(max-width: 767px) and (orientation: portrait) and (any-pointer: coarse)');
+      let accountDeferred = false;
+      document.getElementById('orientation-return').href = window.PiesLibresHotelContext.returnUrl;
+      orientationDialog.addEventListener('cancel', event => event.preventDefault());
+
+      function showAccountDialog() {
+        if(portraitQuery.matches) accountDeferred = true;
+        else if(!accountDialog.open) accountDialog.showModal();
+      }
+
+      function syncOrientation() {
+        if(portraitQuery.matches) {
+          if(accountDialog.open) {
+            accountDeferred = true;
+            accountDialog.close();
+          }
+          if(!orientationDialog.open) orientationDialog.showModal();
+        } else {
+          if(orientationDialog.open) orientationDialog.close();
+          if(accountDeferred) {
+            accountDeferred = false;
+            showAccountDialog();
+          }
+        }
+      }
+
+      portraitQuery.addEventListener('change', syncOrientation);
+      syncOrientation();
       const accountButton = document.getElementById('account-button');
       const accountButtonText = accountButton.querySelector('span');
       const accountClose = document.getElementById('account-close');
@@ -337,7 +380,7 @@
         guestButton.hidden = !required;
         accountTabs.hidden = false;
         setMode(mode);
-        if(!accountDialog.open) accountDialog.showModal();
+        if(!accountDialog.open) showAccountDialog();
       };
 
       const submitCredentials = async (form, path) => {
@@ -436,7 +479,7 @@
           accountCopy.textContent = 'Tu progreso volverá contigo aunque cierres esta ventana.';
           accountName.textContent = accountState.username;
           accountError.textContent = '';
-          accountDialog.showModal();
+          showAccountDialog();
         } else {
           accountTabs.hidden = false;
           openAccount('register');
